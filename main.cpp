@@ -172,7 +172,7 @@ public:
 	}
 	
 private:
-	int PLAYER_SPEED = 2;
+	int PLAYER_SPEED = 4;
 	const int PLAYER_WIDTH = 80;
 	const int PLAYER_HEIGHT = 80;
 	const int SHADOW_WIDTH = 32;
@@ -296,7 +296,7 @@ public:
 	}
 
 private:
-	const int SPEED = 1;
+	const int SPEED = 3;
 	const int FRAME_WIDTH = 80;
 	const int FRAME_HEIGHT = 80;
 	const int SHADOW_WIDTH = 48;
@@ -312,7 +312,9 @@ void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
 {
 	const int INTERVAL = 100;
 	static int counter = 0;
-	if ((++counter) % INTERVAL == 0) enemy_list.push_back(new Enemy());
+	if ( (++counter) % INTERVAL == 0) {
+		enemy_list.push_back(new Enemy());
+	}
 }
 
 
