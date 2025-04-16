@@ -19,7 +19,6 @@ IMAGE img_player_right[5];
 
 
 inline void putimage_alpha(int x, int y, IMAGE* img)
-//ʹ��pngͼ���Դ���alphaͨ������͸����
 {
 	int w = img->getwidth();
 	int h = img->getheight();
@@ -171,7 +170,7 @@ public:
 		return player_pos;
 	}
 	
-private:
+public:
 	int PLAYER_SPEED = 4;
 	const int PLAYER_WIDTH = 80;
 	const int PLAYER_HEIGHT = 80;
@@ -197,7 +196,7 @@ public:
 	Bullet()= default;
 	~Bullet()= default;
 
-	void Draw()
+	void Draw() const
 	{
 		setlinecolor(RGB(255, 155, 50));
 		setfillcolor(RGB(200, 75, 10));
@@ -205,7 +204,7 @@ public:
 	}
 
 private:
-	int RADIUS = 5;
+	int RADIUS = 10;
 };
 
 class Enemy
@@ -256,14 +255,21 @@ public:
         delete anim_right;
 	}
 
-	bool CheckBulletCollision()
+	bool CheckBulletCollision(const Bullet& bullet)
 	{
-        return false;
+		bool is_overlap_x = bullet.position.x >= position.x && bullet.position.x <= position.x + FRAME_WIDTH;
+        bool is_overlap_y = bullet.position.y >= position.y && bullet.position.y <= position.y + FRAME_HEIGHT;
+        return is_overlap_x && is_overlap_y;
 	}
 
-	bool CheckPlayerCollision()
+	bool CheckPlayerCollision(const Player& player)
 	{
-		return false;
+		POINT check_position = { position.x + FRAME_WIDTH / 2,position.y + FRAME_HEIGHT / 2 };
+		const POINT& player_position = player.GetPosition();
+		bool is_overlap_x = player_position.x <= check_position.x && check_position.x <= player_position.x + player.PLAYER_WIDTH;
+		bool is_overlap_y = player_position.y <= check_position.y && check_position.y <= player_position.y + player.PLAYER_HEIGHT;
+		return is_overlap_x && is_overlap_y;
+
 	}
 
 	void Move(const Player& player)
@@ -317,6 +323,20 @@ void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
 	}
 }
 
+void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player)
+{
+	const double RADIAL_SPEED = 0.005;//径速
+	const double TANGENT_SPEED = 0.005;//切速
+	double radian_interval = 2*3.14159 / bullet_list.size();
+	POINT player_pos = player.GetPosition();
+	double radius = 100 + 25 * sin(GetTickCount() * RADIAL_SPEED);
+    for (size_t i = 0; i < bullet_list.size(); i++)
+	{
+		double radian = GetTickCount() * TANGENT_SPEED + i * radian_interval;
+		bullet_list[i].position.x = player_pos.x + player.PLAYER_WIDTH / 2 + (int)(radius * sin(radian));
+        bullet_list[i].position.y = player_pos.y + player.PLAYER_HEIGHT / 2 + (int)(radius * cos(radian));
+	}
+}
 
 int main()
 {
@@ -326,6 +346,7 @@ int main()
 
 	Player player;
 	std::vector<Enemy*> enemy_list;
+	std::vector<Bullet> bullet_list(3);
 
 	loadimage(&img_background, _T("img/background.png"));
 
@@ -339,14 +360,28 @@ int main()
 			player.ProcessEvent(msg);
 		}	
 		player.Move();
+		UpdateBullets(bullet_list, player);
 		TryGenerateEnemy(enemy_list);
 		for (Enemy* enemy : enemy_list)
 			enemy -> Move(player);
+
+		for (Enemy* enemy : enemy_list)
+		{
+			if (enemy->CheckPlayerCollision(player))
+			{
+				MessageBoxW(GetHWnd(), _T("You Lose"), _T("Game over"), MB_OK);
+				running = false;
+                break;
+			}
+		}
+
 		cleardevice();
 		putimage(0, 0, &img_background);
 		player.Draw(1000/180);
 		for (Enemy* enemy : enemy_list)
 			enemy->Draw(1000/180);
+		for (const Bullet& bullet : bullet_list)
+			bullet.Draw();
 
 		FlushBatchDraw();
 
