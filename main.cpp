@@ -301,6 +301,16 @@ public:
         else anim_right->Play(position.x, position.y, delta);
 	}
 
+	void Hurt()
+	{
+		alive = false;
+	}
+
+	bool CheckAlive()
+	{
+		return alive;
+	}
+
 private:
 	const int SPEED = 3;
 	const int FRAME_WIDTH = 80;
@@ -312,6 +322,7 @@ private:
     Animation* anim_right;
 	POINT position = { 0, 0 };
 	bool facing_left = false;
+	bool alive = true;
 };
 
 void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
@@ -325,8 +336,8 @@ void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
 
 void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player)
 {
-	const double RADIAL_SPEED = 0.005;//å¾„é€Ÿ
-	const double TANGENT_SPEED = 0.005;//åˆ‡é€Ÿ
+	const double RADIAL_SPEED = 0.005;//¾¶ËÙ
+	const double TANGENT_SPEED = 0.005;//ÇÐËÙ
 	double radian_interval = 2*3.14159 / bullet_list.size();
 	POINT player_pos = player.GetPosition();
 	double radius = 100 + 25 * sin(GetTickCount() * RADIAL_SPEED);
@@ -369,12 +380,31 @@ int main()
 		{
 			if (enemy->CheckPlayerCollision(player))
 			{
-				MessageBoxW(GetHWnd(), _T("You Lose"), _T("Game over"), MB_OK);
+				MessageBoxW(GetHWnd(), _T("Ç°ÃæµÄ¹Ø¿¨£¬ÒÔºóÔÙÀ´Ì½Ë÷°É"), _T("ÅÉÃÉÌáÐÑÄú"), MB_OK);
 				running = false;
                 break;
 			}
 		}
-
+		for (Enemy* enemy : enemy_list)
+		{
+			for (const Bullet& bullet : bullet_list)
+			{
+				if (enemy->CheckBulletCollision(bullet))
+				{
+					enemy->Hurt();
+				}
+			}
+		}
+		for (size_t i = 0; i < enemy_list.size();i++)
+		{
+			Enemy* enemy = enemy_list[i];
+			if (!enemy->CheckAlive())
+			{
+				std::swap(enemy_list[i], enemy_list.back());
+				enemy_list.pop_back();
+				delete enemy;
+			}
+		}
 		cleardevice();
 		putimage(0, 0, &img_background);
 		player.Draw(1000/180);
