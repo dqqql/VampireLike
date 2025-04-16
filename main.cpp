@@ -5,6 +5,7 @@
 #include <vector>
 #include <time.h>
 #pragma comment(lib, "msimg32.lib") 
+#pragma comment(lib, "Winmm.lib")
 
 int idx_cur_anim = 0;
 const int ANIM_NUM = 5;
@@ -109,15 +110,16 @@ public:
 			{
 			case VK_LEFT:
 				is_move_left = false;
-
+				break;
 			case VK_RIGHT:
 				is_move_right = false;
-
+				break;
 			case VK_UP:
 				is_move_up = false;
-
+				break;
 			case VK_DOWN:
 				is_move_down = false;
+				break;
 			}
 		}
     }
@@ -135,11 +137,6 @@ public:
 			player_pos.y += (int)(PLAYER_SPEED * normalized_y);
 		}
 
-
-		/*if (is_move_left) player_pos.x -= PLAYER_SPEED;
-		if (is_move_right) player_pos.x += PLAYER_SPEED;
-		if (is_move_up) player_pos.y -= PLAYER_SPEED;
-		if (is_move_down) player_pos.y += PLAYER_SPEED;*/
 	}
 	void frontiercheck()
 	{
@@ -171,7 +168,7 @@ public:
 	}
 	
 public:
-	int PLAYER_SPEED = 4;
+	int PLAYER_SPEED = 3;
 	const int PLAYER_WIDTH = 80;
 	const int PLAYER_HEIGHT = 80;
 	const int SHADOW_WIDTH = 32;
@@ -312,7 +309,7 @@ public:
 	}
 
 private:
-	const int SPEED = 3;
+	const int SPEED = 2;
 	const int FRAME_WIDTH = 80;
 	const int FRAME_HEIGHT = 80;
 	const int SHADOW_WIDTH = 48;
@@ -336,8 +333,8 @@ void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
 
 void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player)
 {
-	const double RADIAL_SPEED = 0.005;//径速
-	const double TANGENT_SPEED = 0.005;//切速
+	const double RADIAL_SPEED = 0.004;//径速
+	const double TANGENT_SPEED = 0.003;//切速
 	double radian_interval = 2*3.14159 / bullet_list.size();
 	POINT player_pos = player.GetPosition();
 	double radius = 100 + 25 * sin(GetTickCount() * RADIAL_SPEED);
@@ -349,11 +346,25 @@ void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player)
 	}
 }
 
+void DrawPlayerScore(int score)
+{
+	static TCHAR text[64];
+	_stprintf_s(text, _T("当前分数：%d"), score);
+
+	setbkmode(TRANSPARENT);
+	settextcolor(RGB(255, 255, 255));
+	outtextxy(10, 10, text);
+}
+
 int main()
 {
 	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT);
-	
+	mciSendString(_T("open mus/bgm.mp3 alias bgm"), NULL, 0, NULL);
+    mciSendString(_T("open mus/hit.wav alias  hit"), NULL, 0, NULL);
+	mciSendString(_T("play bgm repeat from 0"), NULL, 0, NULL);
+
 	bool running = true;
+	int score = 0;
 
 	Player player;
 	std::vector<Enemy*> enemy_list;
@@ -391,7 +402,9 @@ int main()
 			{
 				if (enemy->CheckBulletCollision(bullet))
 				{
+					mciSendString(_T("play hit from 0"), NULL, 0, NULL);
 					enemy->Hurt();
+					score++;
 				}
 			}
 		}
@@ -412,7 +425,7 @@ int main()
 			enemy->Draw(1000/180);
 		for (const Bullet& bullet : bullet_list)
 			bullet.Draw();
-
+		DrawPlayerScore(score);
 		FlushBatchDraw();
 
 		DWORD end_time = GetTickCount();
