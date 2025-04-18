@@ -4,18 +4,21 @@ namespace GameConfig
 {
     namespace Window
     {
+        // 窗口大小
         constexpr int WIDTH = 1280;
         constexpr int HEIGHT = 720;
     }
 
     namespace Button
     {
+        //按钮大小
         constexpr int WIDTH = 200;
         constexpr int HEIGHT = 50;
     }
 
     namespace Animation
     {
+        //动画配置
         constexpr int NUM = 5;
         constexpr int FRAME_INTERVAL = 45;
     }
@@ -43,6 +46,7 @@ namespace GameConfig
 
     namespace Gameplay
     {
+        //游戏设置
         constexpr int INIT_BULLETS = 3;
         constexpr int SPAWN_INTERVAL = 100;
     }

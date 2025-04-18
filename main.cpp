@@ -57,6 +57,7 @@ int main()
 		{
 
 			player.Move();
+			player.frontiercheck();
 			UpdateBullets(bullet_list, player);
 			TryGenerateEnemy(enemy_list);
 			for (Enemy* enemy : enemy_list)
