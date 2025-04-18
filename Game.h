@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <time.h>
+#include "config.h"
 #pragma comment(lib, "msimg32.lib") 
 #pragma comment(lib, "Winmm.lib")
 
@@ -11,8 +12,10 @@ int idx_cur_anim = 0;
 bool running = true;
 bool is_game_started = false;
 const int ANIM_NUM = 5;
-const int WINDOW_WIDTH = 1280, WINDOW_HEIGHT = 720;
-const int BUTTON_WIDTH = 200, BUTTON_HEIGHT = 50;
+const int WINDOW_WIDTH = GameConfig::Window::WIDTH;
+const int WINDOW_HEIGHT = GameConfig::Window::HEIGHT;
+const int BUTTON_WIDTH = GameConfig::Button::WIDTH;
+const int BUTTON_HEIGHT = GameConfig::Button::HEIGHT;
 
 
 class Atlas
@@ -453,7 +456,7 @@ public:
 
 void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
 {
-	const int INTERVAL = 100;
+	const int INTERVAL = GameConfig::Gameplay::SPAWN_INTERVAL;
 	static int counter = 0;
 	if ((++counter) % INTERVAL == 0) {
 		enemy_list.push_back(new Enemy());

@@ -1,13 +1,13 @@
 ﻿#include "Game.h"
-
+#include "config.h"
 int main()
 {
 	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	atlas_player_left = new Atlas(L"img/player_left_%d.png", 6);
-    atlas_player_right = new Atlas(L"img/player_right_%d.png", 6);
-    atlas_enemy_left = new Atlas(L"img/enemy_left_%d.png", 6);
-    atlas_enemy_right = new Atlas(L"img/enemy_right_%d.png", 6);
+	atlas_player_left = new Atlas(GameConfig::Path::PLAYER_LEFT, 6);
+    atlas_player_right = new Atlas(GameConfig::Path::PLAYER_RIGHT, 6);
+    atlas_enemy_left = new Atlas(GameConfig::Path::ENEMY_LEFT, 6);
+    atlas_enemy_right = new Atlas(GameConfig::Path::ENEMY_RIGHT, 6);
 
 	mciSendString(_T("open mus/bgm.mp3 alias bgm"), NULL, 0, NULL);
     mciSendString(_T("open mus/hit.wav alias  hit"), NULL, 0, NULL);
@@ -35,6 +35,8 @@ int main()
 
 	loadimage(&img_menu, _T("img/menu.png"));
 	loadimage(&img_background, _T("img/background.png"));
+
+	//初始化完成，接下来是游戏主循环
 
 	BeginBatchDraw();
 
