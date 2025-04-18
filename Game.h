@@ -216,11 +216,11 @@ public:
 	Bullet() = default;
 	~Bullet() = default;
 
-	void Draw() const
-	{
-		setlinecolor(RGB(255, 155, 50));
-		setfillcolor(RGB(200, 75, 10));
-		fillcircle(position.x, position.y, RADIUS);
+	void Draw() const {
+		setlinecolor(GameConfig::Gameplay::BULLET_BORDER);
+		setfillcolor(GameConfig::Gameplay::BULLET_COLOR);
+		fillcircle(position.x, position.y,
+			static_cast<int>(GameConfig::Gameplay::BULLET_RADIUS));
 	}
 
 private:
@@ -463,18 +463,27 @@ void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
 	}
 }
 
-void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player)
-{
-	const double RADIAL_SPEED = 0.004;//����
-	const double TANGENT_SPEED = 0.003;//����
-	double radian_interval = 2 * 3.14159 / bullet_list.size();
-	POINT player_pos = player.GetPosition();
-	double radius = 100 + 25 * sin(GetTickCount() * RADIAL_SPEED);
-	for (size_t i = 0; i < bullet_list.size(); i++)
-	{
-		double radian = GetTickCount() * TANGENT_SPEED + i * radian_interval;
-		bullet_list[i].position.x = player_pos.x + player.PLAYER_WIDTH / 2 + (int)(radius * sin(radian));
-		bullet_list[i].position.y = player_pos.y + player.PLAYER_HEIGHT / 2 + (int)(radius * cos(radian));
+void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player) {
+	// 强制限制最大子弹数量
+	if (bullet_list.size() > GameConfig::Gameplay::MAX_BULLETS) {
+		bullet_list.resize(GameConfig::Gameplay::MAX_BULLETS);
+	}
+
+	const POINT& player_pos = player.GetPosition();
+	const double radian_interval = 2 * 3.14159 / bullet_list.size();
+
+	for (size_t i = 0; i < bullet_list.size(); i++) {
+		const double radian = GetTickCount() * GameConfig::Gameplay::TANGENT_SPEED
+			+ i * radian_interval;
+
+		// 动态半径计算
+		const double dynamic_radius = GameConfig::Gameplay::BASE_RADIUS
+			+ 25 * sin(GetTickCount() * GameConfig::Gameplay::RADIAL_SPEED);
+
+		bullet_list[i].position = {
+			player_pos.x + player.PLAYER_WIDTH / 2 + static_cast<int>(dynamic_radius * sin(radian)),
+			player_pos.y + player.PLAYER_HEIGHT / 2 + static_cast<int>(dynamic_radius * cos(radian))
+		};
 	}
 }
 

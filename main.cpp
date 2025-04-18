@@ -17,7 +17,7 @@ int main()
 
 	Player player;
 	std::vector<Enemy*> enemy_list;
-	std::vector<Bullet> bullet_list(3);
+	std::vector<Bullet> bullet_list(GameConfig::Gameplay::BULLETS_NUM);
 	RECT region_btn_start_game,region_btn_exit_game;
 
 	region_btn_start_game.left = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;

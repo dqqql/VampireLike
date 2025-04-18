@@ -46,8 +46,17 @@ namespace GameConfig
 
     namespace Gameplay
     {
-        //游戏设置
-        constexpr int INIT_BULLETS = 3;
         constexpr int SPAWN_INTERVAL = 100;
+
+        constexpr int BULLETS_NUM = 4;    // 子弹数量
+        constexpr int MAX_BULLETS = 8;     // 最大子弹数量
+        constexpr float BULLET_RADIUS = 10.0f;
+        constexpr COLORREF BULLET_COLOR = RGB(200, 75, 10);
+        constexpr COLORREF BULLET_BORDER = RGB(255, 155, 50);
+
+        // 子弹运动参数
+        constexpr double RADIAL_SPEED = 0.004;  // 径向速度
+        constexpr double TANGENT_SPEED = 0.003; // 切向速度
+        constexpr double BASE_RADIUS = 100.0;   // 基础旋转半径
     }
 }
