@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <time.h>
+#include "config.h"
 #pragma comment(lib, "msimg32.lib") 
 #pragma comment(lib, "Winmm.lib")
 
@@ -11,9 +12,13 @@ int idx_cur_anim = 0;
 bool running = true;
 bool is_game_started = false;
 const int ANIM_NUM = 5;
-const int WINDOW_WIDTH = 1280, WINDOW_HEIGHT = 720;
-const int BUTTON_WIDTH = 200, BUTTON_HEIGHT = 50;
+const int WINDOW_WIDTH = GameConfig::Window::WIDTH;
+const int WINDOW_HEIGHT = GameConfig::Window::HEIGHT;
+const int BUTTON_WIDTH = GameConfig::Button::WIDTH;
+const int BUTTON_HEIGHT = GameConfig::Button::HEIGHT;
 
+int spawn_interval = GameConfig::Spawn::SPAWN_INTERVAL_START;
+DWORD game_start_time = 0;
 
 class Atlas
 {
@@ -213,11 +218,11 @@ public:
 	Bullet() = default;
 	~Bullet() = default;
 
-	void Draw() const
-	{
-		setlinecolor(RGB(255, 155, 50));
-		setfillcolor(RGB(200, 75, 10));
-		fillcircle(position.x, position.y, RADIUS);
+	void Draw() const {
+		setlinecolor(GameConfig::Gameplay::BULLET_BORDER);
+		setfillcolor(GameConfig::Gameplay::BULLET_COLOR);
+		fillcircle(position.x, position.y,
+			static_cast<int>(GameConfig::Gameplay::BULLET_RADIUS));
 	}
 
 private:
@@ -451,27 +456,35 @@ public:
 	}
 };
 
-void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
-{
-	const int INTERVAL = 100;
+void TryGenerateEnemy(std::vector<Enemy*>& enemy_list) {
 	static int counter = 0;
-	if ((++counter) % INTERVAL == 0) {
+	if (++counter >= spawn_interval) {
+		counter = 0;
 		enemy_list.push_back(new Enemy());
 	}
 }
 
-void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player)
-{
-	const double RADIAL_SPEED = 0.004;//����
-	const double TANGENT_SPEED = 0.003;//����
-	double radian_interval = 2 * 3.14159 / bullet_list.size();
-	POINT player_pos = player.GetPosition();
-	double radius = 100 + 25 * sin(GetTickCount() * RADIAL_SPEED);
-	for (size_t i = 0; i < bullet_list.size(); i++)
-	{
-		double radian = GetTickCount() * TANGENT_SPEED + i * radian_interval;
-		bullet_list[i].position.x = player_pos.x + player.PLAYER_WIDTH / 2 + (int)(radius * sin(radian));
-		bullet_list[i].position.y = player_pos.y + player.PLAYER_HEIGHT / 2 + (int)(radius * cos(radian));
+void UpdateBullets(std::vector<Bullet>& bullet_list, const Player& player) {
+	// 强制限制最大子弹数量
+	if (bullet_list.size() > GameConfig::Gameplay::MAX_BULLETS) {
+		bullet_list.resize(GameConfig::Gameplay::MAX_BULLETS);
+	}
+
+	const POINT& player_pos = player.GetPosition();
+	const double radian_interval = 2 * 3.14159 / bullet_list.size();
+
+	for (size_t i = 0; i < bullet_list.size(); i++) {
+		const double radian = GetTickCount() * GameConfig::Gameplay::TANGENT_SPEED
+			+ i * radian_interval;
+
+		// 动态半径计算
+		const double dynamic_radius = GameConfig::Gameplay::BASE_RADIUS
+			+ 25 * sin(GetTickCount() * GameConfig::Gameplay::RADIAL_SPEED);
+
+		bullet_list[i].position = {
+			player_pos.x + player.PLAYER_WIDTH / 2 + static_cast<int>(dynamic_radius * sin(radian)),
+			player_pos.y + player.PLAYER_HEIGHT / 2 + static_cast<int>(dynamic_radius * cos(radian))
+		};
 	}
 }
 
@@ -483,4 +496,13 @@ void DrawPlayerScore(int score)
 	setbkmode(TRANSPARENT);
 	settextcolor(RGB(255, 255, 255));
 	outtextxy(10, 10, text);
+}
+
+void DrawSpawnInterval() {
+	static TCHAR text[64];
+	_stprintf_s(text, _T("刷怪间隔: %d"), spawn_interval);
+
+	setbkmode(TRANSPARENT);
+	settextcolor(RGB(255, 255, 255));
+	outtextxy(WINDOW_WIDTH - 200, 10, text);
 }

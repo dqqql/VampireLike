@@ -1,13 +1,13 @@
 ﻿#include "Game.h"
-
+#include "config.h"
 int main()
 {
 	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	atlas_player_left = new Atlas(L"img/player_left_%d.png", 6);
-    atlas_player_right = new Atlas(L"img/player_right_%d.png", 6);
-    atlas_enemy_left = new Atlas(L"img/enemy_left_%d.png", 6);
-    atlas_enemy_right = new Atlas(L"img/enemy_right_%d.png", 6);
+	atlas_player_left = new Atlas(GameConfig::Path::PLAYER_LEFT, 6);
+    atlas_player_right = new Atlas(GameConfig::Path::PLAYER_RIGHT, 6);
+    atlas_enemy_left = new Atlas(GameConfig::Path::ENEMY_LEFT, 6);
+    atlas_enemy_right = new Atlas(GameConfig::Path::ENEMY_RIGHT, 6);
 
 	mciSendString(_T("open mus/bgm.mp3 alias bgm"), NULL, 0, NULL);
     mciSendString(_T("open mus/hit.wav alias  hit"), NULL, 0, NULL);
@@ -17,8 +17,8 @@ int main()
 
 	Player player;
 	std::vector<Enemy*> enemy_list;
-	std::vector<Bullet> bullet_list(3);
-	RECT region_btn_start_game,region_btn_exit_game;
+	std::vector<Bullet> bullet_list(GameConfig::Gameplay::BULLETS_NUM);
+	RECT region_btn_start_game, region_btn_exit_game;
 
 	region_btn_start_game.left = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
     region_btn_start_game.top = 430;
@@ -30,16 +30,39 @@ int main()
     region_btn_exit_game.right = region_btn_exit_game.left + BUTTON_WIDTH;
     region_btn_exit_game.bottom = region_btn_exit_game.top + BUTTON_HEIGHT;
 
+
 	StartButton btn_start_game = StartButton(region_btn_start_game, _T("img/ui_start_idle.png"), _T("img/ui_start_hovered.png"), _T("img/ui_start_pushed.png"));
 	ExitButton btn_exit_game = ExitButton(region_btn_exit_game, _T("img/ui_quit_idle.png"), _T("img/ui_quit_hovered.png"), _T("img/ui_quit_pushed.png"));
 
 	loadimage(&img_menu, _T("img/menu.png"));
 	loadimage(&img_background, _T("img/background.png"));
 
+	//初始化完成，接下来是游戏主循环
+
 	BeginBatchDraw();
 
 	while (running)
 	{
+		if (game_start_time == 0) {
+			game_start_time = GetTickCount();
+		}
+
+		// 计算经过时间（秒）
+		DWORD elapsed_seconds = (GetTickCount() - game_start_time) / 1000;
+
+		// 每30秒减少间隔
+		if (elapsed_seconds > 0 &&
+			elapsed_seconds % GameConfig::Spawn::SPAWN_REDUCE_INTERVAL_SECONDS == 0)
+		{
+			spawn_interval = max(
+				GameConfig::Spawn::SPAWN_MIN_INTERVAL,
+				spawn_interval - GameConfig::Spawn::SPAWN_REDUCE_AMOUNT
+			);
+
+			// 防止重复触发
+			game_start_time = GetTickCount();
+		}
+
 		DWORD start_time = GetTickCount();
 		while (peekmessage(&msg))
 		{
@@ -55,6 +78,7 @@ int main()
 		{
 
 			player.Move();
+			player.frontiercheck();
 			UpdateBullets(bullet_list, player);
 			TryGenerateEnemy(enemy_list);
 			for (Enemy* enemy : enemy_list)
@@ -102,6 +126,7 @@ int main()
 			for (const Bullet& bullet : bullet_list)
 				bullet.Draw();
 			DrawPlayerScore(score);
+			DrawSpawnInterval();
 		}
 		else
 		{
