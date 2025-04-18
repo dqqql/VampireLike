@@ -59,4 +59,11 @@ namespace GameConfig
         constexpr double TANGENT_SPEED = 0.003; // 切向速度
         constexpr double BASE_RADIUS = 100.0;   // 基础旋转半径
     }
+
+    namespace Spawn {
+        constexpr int SPAWN_INTERVAL_START = 100;   // 初始间隔（帧）
+        constexpr int SPAWN_REDUCE_INTERVAL_SECONDS = 30; // 减少间隔（秒）
+        constexpr int SPAWN_REDUCE_AMOUNT = 10;     // 每次减少量
+        constexpr int SPAWN_MIN_INTERVAL = 40;      // 最小间隔
+    }
 }

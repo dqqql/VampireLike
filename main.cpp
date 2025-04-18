@@ -18,7 +18,7 @@ int main()
 	Player player;
 	std::vector<Enemy*> enemy_list;
 	std::vector<Bullet> bullet_list(GameConfig::Gameplay::BULLETS_NUM);
-	RECT region_btn_start_game,region_btn_exit_game;
+	RECT region_btn_start_game, region_btn_exit_game;
 
 	region_btn_start_game.left = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
     region_btn_start_game.top = 430;
@@ -29,6 +29,7 @@ int main()
     region_btn_exit_game.top = 530;
     region_btn_exit_game.right = region_btn_exit_game.left + BUTTON_WIDTH;
     region_btn_exit_game.bottom = region_btn_exit_game.top + BUTTON_HEIGHT;
+
 
 	StartButton btn_start_game = StartButton(region_btn_start_game, _T("img/ui_start_idle.png"), _T("img/ui_start_hovered.png"), _T("img/ui_start_pushed.png"));
 	ExitButton btn_exit_game = ExitButton(region_btn_exit_game, _T("img/ui_quit_idle.png"), _T("img/ui_quit_hovered.png"), _T("img/ui_quit_pushed.png"));
@@ -42,6 +43,26 @@ int main()
 
 	while (running)
 	{
+		if (game_start_time == 0) {
+			game_start_time = GetTickCount();
+		}
+
+		// 计算经过时间（秒）
+		DWORD elapsed_seconds = (GetTickCount() - game_start_time) / 1000;
+
+		// 每30秒减少间隔
+		if (elapsed_seconds > 0 &&
+			elapsed_seconds % GameConfig::Spawn::SPAWN_REDUCE_INTERVAL_SECONDS == 0)
+		{
+			spawn_interval = max(
+				GameConfig::Spawn::SPAWN_MIN_INTERVAL,
+				spawn_interval - GameConfig::Spawn::SPAWN_REDUCE_AMOUNT
+			);
+
+			// 防止重复触发
+			game_start_time = GetTickCount();
+		}
+
 		DWORD start_time = GetTickCount();
 		while (peekmessage(&msg))
 		{
@@ -105,6 +126,7 @@ int main()
 			for (const Bullet& bullet : bullet_list)
 				bullet.Draw();
 			DrawPlayerScore(score);
+			DrawSpawnInterval();
 		}
 		else
 		{

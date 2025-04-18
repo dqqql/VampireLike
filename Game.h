@@ -17,6 +17,8 @@ const int WINDOW_HEIGHT = GameConfig::Window::HEIGHT;
 const int BUTTON_WIDTH = GameConfig::Button::WIDTH;
 const int BUTTON_HEIGHT = GameConfig::Button::HEIGHT;
 
+int spawn_interval = GameConfig::Spawn::SPAWN_INTERVAL_START;
+DWORD game_start_time = 0;
 
 class Atlas
 {
@@ -454,11 +456,10 @@ public:
 	}
 };
 
-void TryGenerateEnemy(std::vector<Enemy*>& enemy_list)
-{
-	const int INTERVAL = GameConfig::Gameplay::SPAWN_INTERVAL;
+void TryGenerateEnemy(std::vector<Enemy*>& enemy_list) {
 	static int counter = 0;
-	if ((++counter) % INTERVAL == 0) {
+	if (++counter >= spawn_interval) {
+		counter = 0;
 		enemy_list.push_back(new Enemy());
 	}
 }
@@ -495,4 +496,13 @@ void DrawPlayerScore(int score)
 	setbkmode(TRANSPARENT);
 	settextcolor(RGB(255, 255, 255));
 	outtextxy(10, 10, text);
+}
+
+void DrawSpawnInterval() {
+	static TCHAR text[64];
+	_stprintf_s(text, _T("刷怪间隔: %d"), spawn_interval);
+
+	setbkmode(TRANSPARENT);
+	settextcolor(RGB(255, 255, 255));
+	outtextxy(WINDOW_WIDTH - 200, 10, text);
 }
